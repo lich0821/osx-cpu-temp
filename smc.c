@@ -1,6 +1,6 @@
 /*
- * Apple System Management Control (SMC) Tool 
- * Copyright (C) 2006 devnull 
+ * Apple System Management Control (SMC) Tool
+ * Copyright (C) 2006 devnull
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
 
 static io_connect_t conn;
 
-UInt32 _strtoul(char* str, int size, int base)
+UInt32 _strtoul(char *str, int size, int base)
 {
     UInt32 total = 0;
     int i;
@@ -39,14 +39,11 @@ UInt32 _strtoul(char* str, int size, int base)
     return total;
 }
 
-void _ultostr(char* str, UInt32 val)
+void _ultostr(char *str, UInt32 val)
 {
     str[0] = '\0';
-    sprintf(str, "%c%c%c%c",
-        (unsigned int)val >> 24,
-        (unsigned int)val >> 16,
-        (unsigned int)val >> 8,
-        (unsigned int)val);
+    sprintf(str, "%c%c%c%c", (unsigned int)val >> 24, (unsigned int)val >> 16, (unsigned int)val >> 8,
+            (unsigned int)val);
 }
 
 kern_return_t SMCOpen(void)
@@ -56,7 +53,7 @@ kern_return_t SMCOpen(void)
     io_object_t device;
 
     CFMutableDictionaryRef matchingDictionary = IOServiceMatching("AppleSMC");
-    result = IOServiceGetMatchingServices(kIOMasterPortDefault, matchingDictionary, &iterator);
+    result = IOServiceGetMatchingServices(kIOMainPortDefault, matchingDictionary, &iterator);
     if (result != kIOReturnSuccess) {
         printf("Error: IOServiceGetMatchingServices() = %08x\n", result);
         return 1;
@@ -79,35 +76,31 @@ kern_return_t SMCOpen(void)
     return kIOReturnSuccess;
 }
 
-kern_return_t SMCClose()
-{
-    return IOServiceClose(conn);
-}
+kern_return_t SMCClose() { return IOServiceClose(conn); }
 
-kern_return_t SMCCall(int index, SMCKeyData_t* inputStructure, SMCKeyData_t* outputStructure)
+kern_return_t SMCCall(int index, SMCKeyData_t *inputStructure, SMCKeyData_t *outputStructure)
 {
     size_t structureInputSize;
     size_t structureOutputSize;
 
-    structureInputSize = sizeof(SMCKeyData_t);
+    structureInputSize  = sizeof(SMCKeyData_t);
     structureOutputSize = sizeof(SMCKeyData_t);
 
 #if MAC_OS_X_VERSION_10_5
     return IOConnectCallStructMethod(conn, index,
-        // inputStructure
-        inputStructure, structureInputSize,
-        // ouputStructure
-        outputStructure, &structureOutputSize);
+                                     // inputStructure
+                                     inputStructure, structureInputSize,
+                                     // ouputStructure
+                                     outputStructure, &structureOutputSize);
 #else
-    return IOConnectMethodStructureIStructureO(conn, index,
-        structureInputSize, /* structureInputSize */
-        &structureOutputSize, /* structureOutputSize */
-        inputStructure, /* inputStructure */
-        outputStructure); /* ouputStructure */
+    return IOConnectMethodStructureIStructureO(conn, index, structureInputSize, /* structureInputSize */
+                                               &structureOutputSize,            /* structureOutputSize */
+                                               inputStructure,                  /* inputStructure */
+                                               outputStructure);                /* ouputStructure */
 #endif
 }
 
-kern_return_t SMCReadKey(UInt32Char_t key, SMCVal_t* val)
+kern_return_t SMCReadKey(UInt32Char_t key, SMCVal_t *val)
 {
     kern_return_t result;
     SMCKeyData_t inputStructure;
@@ -117,7 +110,7 @@ kern_return_t SMCReadKey(UInt32Char_t key, SMCVal_t* val)
     memset(&outputStructure, 0, sizeof(SMCKeyData_t));
     memset(val, 0, sizeof(SMCVal_t));
 
-    inputStructure.key = _strtoul(key, 4, 16);
+    inputStructure.key   = _strtoul(key, 4, 16);
     inputStructure.data8 = SMC_CMD_READ_KEYINFO;
 
     result = SMCCall(KERNEL_INDEX_SMC, &inputStructure, &outputStructure);
@@ -127,7 +120,7 @@ kern_return_t SMCReadKey(UInt32Char_t key, SMCVal_t* val)
     val->dataSize = outputStructure.keyInfo.dataSize;
     _ultostr(val->dataType, outputStructure.keyInfo.dataType);
     inputStructure.keyInfo.dataSize = val->dataSize;
-    inputStructure.data8 = SMC_CMD_READ_BYTES;
+    inputStructure.data8            = SMC_CMD_READ_BYTES;
 
     result = SMCCall(KERNEL_INDEX_SMC, &inputStructure, &outputStructure);
     if (result != kIOReturnSuccess)
@@ -138,7 +131,7 @@ kern_return_t SMCReadKey(UInt32Char_t key, SMCVal_t* val)
     return kIOReturnSuccess;
 }
 
-double SMCGetTemperature(char* key)
+double SMCGetTemperature(char *key)
 {
     SMCVal_t val;
     kern_return_t result;
@@ -158,7 +151,7 @@ double SMCGetTemperature(char* key)
     return 0.0;
 }
 
-double SMCGetFanSpeed(char* key)
+double SMCGetFanSpeed(char *key)
 {
     SMCVal_t val;
     kern_return_t result;
@@ -178,10 +171,7 @@ double SMCGetFanSpeed(char* key)
     return 0.0;
 }
 
-double convertToFahrenheit(double celsius)
-{
-    return (celsius * (9.0 / 5.0)) + 32.0;
-}
+double convertToFahrenheit(double celsius) { return (celsius * (9.0 / 5.0)) + 32.0; }
 
 // Requires SMCOpen()
 void readAndPrintCpuTemp(int show_title, char scale)
@@ -191,11 +181,7 @@ void readAndPrintCpuTemp(int show_title, char scale)
         temperature = convertToFahrenheit(temperature);
     }
 
-    char* title = "";
-    if (show_title) {
-        title = "CPU: ";
-    }
-    printf("%s%0.1f °%c\n", title, temperature, scale);
+    printf("%0.1f°%c", temperature, scale);
 }
 
 // Requires SMCOpen()
@@ -206,15 +192,12 @@ void readAndPrintGpuTemp(int show_title, char scale)
         temperature = convertToFahrenheit(temperature);
     }
 
-    char* title = "";
-    if (show_title) {
-        title = "GPU: ";
-    }
-    printf("%s%0.1f °%c\n", title, temperature, scale);
+    printf("%0.1f°%c", temperature, scale);
 }
 
-float SMCGetFanRPM(char* key)
+float SMCGetFanRPM(char *key)
 {
+    float fval;
     SMCVal_t val;
     kern_return_t result;
 
@@ -224,7 +207,10 @@ float SMCGetFanRPM(char* key)
         if (val.dataSize > 0) {
             if (strcmp(val.dataType, DATATYPE_FPE2) == 0) {
                 // convert fpe2 value to RPM
-                return ntohs(*(UInt16*)val.bytes) / 4.0;
+                return ntohs(*(UInt16 *)val.bytes) / 4.0;
+            } else if (strcmp(val.dataType, DATATYPE_FLT) == 0 && val.dataSize == 4) {
+                memcpy(&fval, val.bytes, sizeof(float));
+                return fval;
             }
         }
     }
@@ -239,98 +225,64 @@ void readAndPrintFanRPMs(void)
     SMCVal_t val;
     UInt32Char_t key;
     int totalFans, i;
+    float speed = 0;
 
     result = SMCReadKey("FNum", &val);
-
     if (result == kIOReturnSuccess) {
-        totalFans = _strtoul((char*)val.bytes, val.dataSize, 10);
-
-        printf("Num fans: %d\n", totalFans);
+        totalFans = _strtoul((char *)val.bytes, val.dataSize, 10);
         for (i = 0; i < totalFans; i++) {
             sprintf(key, "F%dID", i);
             result = SMCReadKey(key, &val);
             if (result != kIOReturnSuccess) {
                 continue;
             }
-            char* name = val.bytes + 4;
 
             sprintf(key, "F%dAc", i);
             float actual_speed = SMCGetFanRPM(key);
             if (actual_speed < 0.f) {
                 continue;
             }
-
-            sprintf(key, "F%dMn", i);
-            float minimum_speed = SMCGetFanRPM(key);
-            if (minimum_speed < 0.f) {
-                continue;
-            }
-
-            sprintf(key, "F%dMx", i);
-            float maximum_speed = SMCGetFanRPM(key);
-            if (maximum_speed < 0.f) {
-                continue;
-            }
-
-            float rpm = actual_speed - minimum_speed;
-            if (rpm < 0.f) {
-                rpm = 0.f;
-            }
-            float pct = rpm / (maximum_speed - minimum_speed);
-
-            pct *= 100.f;
-            printf("Fan %d - %s at %.0f RPM (%.0f%%)\n", i, name, rpm, pct);
-
-            //sprintf(key, "F%dSf", i);
-            //SMCReadKey(key, &val);
-            //printf("    Safe speed   : %.0f\n", strtof(val.bytes, val.dataSize, 2));
-            //sprintf(key, "F%dTg", i);
-            //SMCReadKey(key, &val);
-            //printf("    Target speed : %.0f\n", strtof(val.bytes, val.dataSize, 2));
-            //SMCReadKey("FS! ", &val);
-            //if ((_strtoul((char *)val.bytes, 2, 16) & (1 << i)) == 0)
-            //    printf("    Mode         : auto\n");
-            //else
-            //    printf("    Mode         : forced\n");
+            speed = actual_speed > speed ? actual_speed : speed;
         }
+        printf("%.0frpm", speed);
     }
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     char scale = 'C';
-    int cpu = 0;
-    int fan = 0;
-    int gpu = 0;
+    int cpu    = 0;
+    int fan    = 0;
+    int gpu    = 0;
 
     int c;
     while ((c = getopt(argc, argv, "CFcfgh?")) != -1) {
         switch (c) {
-        case 'F':
-        case 'C':
-            scale = c;
-            break;
-        case 'c':
-            cpu = 1;
-            break;
-        case 'f':
-            fan = 1;
-            break;
-        case 'g':
-            gpu = 1;
-            break;
-        case 'h':
-        case '?':
-            printf("usage: osx-cpu-temp <options>\n");
-            printf("Options:\n");
-            printf("  -F  Display temperatures in degrees Fahrenheit.\n");
-            printf("  -C  Display temperatures in degrees Celsius (Default).\n");
-            printf("  -c  Display CPU temperature (Default).\n");
-            printf("  -g  Display GPU temperature.\n");
-            printf("  -f  Display fan speeds.\n");
-            printf("  -h  Display this help.\n");
-            printf("\nIf more than one of -c, -f, or -g are specified, titles will be added\n");
-            return -1;
+            case 'F':
+            case 'C':
+                scale = c;
+                break;
+            case 'c':
+                cpu = 1;
+                break;
+            case 'f':
+                fan = 1;
+                break;
+            case 'g':
+                gpu = 1;
+                break;
+            case 'h':
+            case '?':
+                printf("usage: osx-cpu-temp <options>\n");
+                printf("Options:\n");
+                printf("  -F  Display temperatures in degrees Fahrenheit.\n");
+                printf("  -C  Display temperatures in degrees Celsius (Default).\n");
+                printf("  -c  Display CPU temperature (Default).\n");
+                printf("  -g  Display GPU temperature.\n");
+                printf("  -f  Display fan speeds.\n");
+                printf("  -h  Display this help.\n");
+                printf("\nIf more than one of -c, -f, or -g are specified, titles will be added\n");
+                return -1;
         }
     }
 
@@ -345,10 +297,19 @@ int main(int argc, char* argv[])
     if (cpu) {
         readAndPrintCpuTemp(show_title, scale);
     }
+
     if (gpu) {
+        if (cpu) {
+            printf(" ");
+        }
+
         readAndPrintGpuTemp(show_title, scale);
     }
     if (fan) {
+        if (cpu | gpu) {
+            printf(" ");
+        }
+
         readAndPrintFanRPMs();
     }
 
