@@ -1,8 +1,21 @@
 # OSX CPU Temp
 
+## References
+* [smcFanControl](https://github.com/hholtmann/smcFanControl)
+* [SMC keys](https://github.com/beltex/SMCKit/blob/master/SMCKit/SMC.swift#L454)
+* [SMC keys](https://github.com/beltex/libsmc/blob/master/include/smc.h#L60)
+* [SMC Sensor Codes](https://logi.wiki/index.php/SMC_Sensor_Codes)
+
+```
+CPU Temp: TC0F
+GPU Temp: TGDD
+```
+
+---
+
 Outputs current CPU temperature for OSX.
 
-## Usage 
+## Usage
 
 ### Compiling
 
@@ -41,16 +54,16 @@ clib install lavoiesl/osx-cpu-temp
  * `-F` Output temperature in Fahrenheit.
  * `-f` Output fan speed.
 
-## Maintainer 
+## Maintainer
 
 Sébastien Lavoie <github@lavoie.sl>
 
-### Source 
+### Source
 
-Apple System Management Control (SMC) Tool 
+Apple System Management Control (SMC) Tool
 Copyright (C) 2006
 
-### Inspiration 
+### Inspiration
 
  * https://www.eidac.de/smcfancontrol/
  * https://github.com/hholtmann/smcFanControl/tree/master/smc-command
